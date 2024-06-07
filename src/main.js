@@ -19,8 +19,8 @@ let game_config = {
     scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: 320,
-        height: 144,
+        width: 240,
+        height: 266,
     },
     fps: { forceSetTimeOut: true, target: 30 },
     scene: [Load, Adventure],
@@ -46,8 +46,8 @@ let hud_config = {
     scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: 320,
-        height: 48,
+        width: 240,
+        height: 88,
     },
     fps: { forceSetTimeOut: true, target: 30 },
     transparent: true,
@@ -64,9 +64,8 @@ const SCALE = 2.0;
 var my = {sprite: {}, text: {}, 
     playerVal: {max: 6,
         health: 6,
-        rupees: 0,
+        coins: 0,
         keys: 0,
-        pos: ''
     }
 };
 

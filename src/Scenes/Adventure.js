@@ -5,26 +5,7 @@ class Adventure extends Phaser.Scene {
 
     init() {
         // variables and settings
-        this.move = true; // can move
-        this.moving = false; // is moving
-        this.tileSize = 8;
-        this.playerVelocity = 80;
-        this.gameFrame = 0;
-        this.relative_gameFrame = 0;
-        this.actionable_timer = 0;
-        this.actionable_offset = 0;
-        this.iframes_counter = 0;
-        this.actionable = true;
-        this.map_coords = [['A0', '', 'C0', ''], //MUST BE ACCESSED VIA map_coords[y][x]
-                            ['A1', 'B1', 'C1', 'D1', ''],
-                            ['A2', 'B2', 'C2', 'D2', ''],
-                            ['A3', 'B3', 'C3', 'D3', 'E3'],
-                            ['A4', 'B4', 'C4', 'D4', ''],
-                            ['', '', '', 'D5', '']];
-        this.spawn_locations = [{screen: 'C4', type: 'octo_front', x: 850, y: 650}, {screen: 'C4', type: 'octo_front', x: 866, y: 650}];
-        this.xKey = this.input.keyboard.addKey('X');
-        this.zKey = this.input.keyboard.addKey('Z');
-        this.enemies = [];
+
     }
 
     create() {
