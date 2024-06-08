@@ -14,6 +14,7 @@ class Adventure extends Phaser.Scene {
             jumpDuration: 3.6
         }
         this.key1 = false;
+        this.active = true;
     }
 
     create() {
@@ -36,7 +37,7 @@ class Adventure extends Phaser.Scene {
         this.physics.world.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
 
 //PLAYER SETUP============================================================================================================================
-        my.sprite.player = this.physics.add.sprite(112, 760, "knight", "knight-1.png").setDepth(100);
+        my.sprite.player = this.physics.add.sprite(112, 760, "knight", "knight-1.png").setDepth(100); 
         my.sprite.player.armor = 'knight';
         my.sprite.player.grounded = false;
         this.physics.world.enable(my.sprite.player);
@@ -55,10 +56,11 @@ class Adventure extends Phaser.Scene {
         my.sprite.closedR = this.add.sprite(224, 24, "dung_tiles", 47);
 
 //DEUBG====================================================================================================================================
-        this.input.keyboard.on('keydown-D', () => {
-            this.physics.world.drawDebug = this.physics.world.drawDebug ? false : true
-            this.physics.world.debugGraphic.clear()
-        }, this);
+        this.input.keyboard.on('keydown-R', () => {
+            if (!this.active) {
+                this.scene.restart();
+            }
+        })
 
 //CAMERA===================================================================================================================================
         // adjust camera to full game canvas
@@ -78,55 +80,67 @@ class Adventure extends Phaser.Scene {
     }
     
     update() {
-        // correct grounded from constantly moving the player.
-        let tile = this.map.getTileAtWorldXY(my.sprite.player.x, my.sprite.player.y + 16, true, this.mapCamera, this.groundLayer);
-        if(tile && tile.index != -1) {my.sprite.player.grounded = true; this.physics.world.gravity.y = 0;}
-        else if (tile.index == -1) {my.sprite.player.grounded = false; this.physics.world.gravity.y = 150;}
+        if (this.active) {
+            // correct grounded from constantly moving the player.
+            let tile = this.map.getTileAtWorldXY(my.sprite.player.x, my.sprite.player.y + 16, true, this.mapCamera, this.groundLayer);
+            if(tile && tile.index != -1) {my.sprite.player.grounded = true; this.physics.world.gravity.y = 0;}
+            else if (tile.index == -1) {my.sprite.player.grounded = false; this.physics.world.gravity.y = 150;}
 
         
 //PLAYER CHECKS=========================================================================================================================
-        let anim = my.sprite.player.armor;
+            let anim = my.sprite.player.armor;
 
-        // correct max velocity
-        if(my.sprite.player.velocity > my.playerVal.maxSpeed) {
-            my.sprite.player.setVelocityX(my.playerVal.maxSpeed);
-        }
-        
-        // player movement
-        if(cursors.left.isDown) { //move left pressed
-            my.sprite.player.setAccelerationX(-this.playerVelocity.acceleration);
-            my.sprite.player.anims.play(anim, true);
-            my.sprite.player.setFlip(true, false);
-        } else if(cursors.right.isDown) { //move right pressed
-            my.sprite.player.setAccelerationX(this.playerVelocity.acceleration);
-            my.sprite.player.anims.play(anim, true);
-            my.sprite.player.resetFlip();    
-        } else { // no longer walking, enact decel
-            my.sprite.player.setAccelerationX(0);
-            my.sprite.player.setDragX(18*16);
-        }
-        if (Phaser.Input.Keyboard.JustDown(this.spaceBar) && my.sprite.player.grounded) { //jump pressed
-            my.sprite.player.setVelocityY(this.playerVelocity.jumpHeight);
-            // console.log("v:"+my.sprite.player.body.velocity.x+","+my.sprite.player.body.velocity.y);
-        }
+            // correct max velocity
+            if(my.sprite.player.velocity > my.playerVal.maxSpeed) {
+                my.sprite.player.setVelocityX(my.playerVal.maxSpeed);
+            }
+            
+            // player movement
+            if(cursors.left.isDown) { //move left pressed
+                my.sprite.player.setAccelerationX(-this.playerVelocity.acceleration);
+                my.sprite.player.anims.play(anim, true);
+                my.sprite.player.setFlip(true, false);
+            } else if(cursors.right.isDown) { //move right pressed
+                my.sprite.player.setAccelerationX(this.playerVelocity.acceleration);
+                my.sprite.player.anims.play(anim, true);
+                my.sprite.player.resetFlip();    
+            } else { // no longer walking, enact decel
+                my.sprite.player.setAccelerationX(0);
+                my.sprite.player.setDragX(18*16);
+            }
+            if (Phaser.Input.Keyboard.JustDown(this.spaceBar) && my.sprite.player.grounded) { //jump pressed
+                my.sprite.player.setVelocityY(this.playerVelocity.jumpHeight);
+                // console.log("v:"+my.sprite.player.body.velocity.x+","+my.sprite.player.body.velocity.y);
+            }
 
-        // key progression
-        if (this.collides(my.sprite.player, my.sprite.key1)) {
-            my.sprite.key1.destroy();
-            this.key1 = true;
+            // key progression
+            if (this.collides(my.sprite.player, my.sprite.key1)) {
+                my.sprite.key1.destroy();
+                this.key1 = true;
+            }
+            if (this.collides(my.sprite.player, my.sprite.lock1) && this.key1 === true) {
+                my.sprite.lock1.destroy();
+                my.sprite.closedL.destroy();
+                my.sprite.closedR.destroy();
+                my.sprite.openL = this.add.sprite(208, 24, "dung_tiles", 10);
+                my.sprite.openR = this.add.sprite(224, 24, "dung_tiles", 11);
+            }
+            
+            // end of game
+            if (my.sprite.openR) {
+                if (this.collides(my.sprite.player, my.sprite.openR)) {
+                    this.active = false;
+                    this.add.text(80, 32, 'You win!', {
+                        font: '18px PressStart2p',
+                        fill: '#000000'
+                    })
+                    this.add.text(48, 48, 'Press R to restart', {
+                        font: '18px PressStart2p',
+                        fill: '#000000'
+                    })
+                }
+            }
         }
-        if (this.collides(my.sprite.player, my.sprite.lock1) && this.key1 === true) {
-            my.sprite.lock1.destroy();
-            my.sprite.closedL.destroy();
-            my.sprite.closedR.destroy();
-            my.sprite.openL = this.add.sprite(208, 24, "dung_tiles", 10);
-            my.sprite.openR = this.add.sprite(224, 24, "dung_tiles", 11);
-        }
-        
-        // end of game
-        // if (this.collides(my.sprite.player, my.sprite.openL || my.sprite.openR)) {
-
-        // }
     }
 }
 //TIMERS=================================================================================================================================
