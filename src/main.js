@@ -40,24 +40,6 @@ let game_config = {
         }
     }
 }
-let hud_config = {
-    parent: 'hud-canvas',
-    type: Phaser.AUTO,
-    scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: 240,
-        height: 88,
-    },
-    fps: { forceSetTimeOut: true, target: 30 },
-    transparent: true,
-    scene: [HUDLoad, HudScene], // Separate scene for HUD elements
-    render: {
-        pixelArt: true,  // prevent pixel art from getting blurred when scaled
-        antialias: false,
-        roundPixels: true
-    }
-};
 
 var cursors;
 const SCALE = 2.0;
@@ -69,6 +51,4 @@ var my = {sprite: {}, text: {},
     }
 };
 
-const hud = new Phaser.Game(hud_config);
 const game = new Phaser.Game(game_config);
-const events = new Phaser.Events.EventEmitter();

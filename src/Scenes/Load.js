@@ -7,53 +7,48 @@ class Load extends Phaser.Scene {
         this.load.setPath("./assets/");
 
         // Load characters spritesheet
-        this.load.atlas('link_green_walk', 'link/LinkMove/LinkMove.png', 'link/LinkMove/LinkMove.json');
-        this.load.atlas('link_green_item', 'link/LinkItem/LinkItem.png', 'link/LinkItem/LinkItem.json');
-        this.load.image('link_green_pickup', 'link/LinkPickup/LinkPickup-0.png');
-        this.load.atlas('armos_back', 'Armos/ArmosBack/ArmosBack.png', 'Armos/ArmosBack/ArmosBack.json');
-        this.load.atlas('armos_front', 'Armos/ArmosFront/ArmosFront.png', 'Armos/ArmosFront/ArmosFront.json');
-        this.load.atlas('leever', 'Leever/Leever.png', 'Leever/Leever.json');
-        this.load.atlas('octo_front', 'Octo/OctoFront/OctoFront.png', 'Octo/OctoFront/OctoFront.json');
-        this.load.atlas('octo_side', 'Octo/OctoSide/OctoSide.png', 'Octo/OctoSide/OctoSide.json');
-        
-        this.load.image("ice_wand_up", "small_assets/ice_wand_up.png");
-        this.load.image("ice_wand_side", "small_assets/ice_wand_side.png");
-        this.load.image("sword_up", "small_assets/sword_up.png");
-        this.load.image("sword_side", "small_assets/sword_side.png");
+        this.load.atlas('knight', 'Knight/knightWalk.png', 'Knight/knightWalk.json');
+        this.load.atlas('heavyKnight', 'heavyKnight/heavyKnightWalk.png', 'heavyKnight/heavyKnightWalk.json');
+ 
+        // Load enemy spritesheet
+        this.load.image('spirit', 'Spirits/spirit.png');
+        this.load.image('evilSpirit', 'Spirits/evilSpirit.png');
 
         // Load tilemap information
         this.load.image("rock_packed", "Tiled/rock_packed.png");
         this.load.image("tilemap_packed_dung", "Tiled/tilemap_packed_dung.png");
         this.load.image("tilemap_packed_plat", "Tiled/tilemap_packed_plat.png");
-        this.load.tilemapTiledJSON("HUD", "HUD.tmj"); 
-        this.load.tilemapTiledJSON("Level1", "Level1.tmj");
-        this.load.tilemapTiledJSON("Boss1", "Boss1.tmj");
+        this.load.spritesheet("plat_tiles", "Tiled/tilemap_packed_plat.png", {frameWidth: 18, frameHeight: 18});
+        this.load.spritesheet("dung_tiles", "Tiled/tilemap_packed_dung.png", {frameWidth: 16, frameHeight: 16});
+        // this.load.tilemapTiledJSON("HUD", "HUD.tmj"); 
+        this.load.tilemapTiledJSON("Level1", "Tiled/Level1.tmj");
+        this.load.tilemapTiledJSON("Boss1", "Tiled/Boss1.tmj");
     }
 
     create() {
         this.anims.create({
-            key: 'player_walk',
-            frames: this.anims.generateFrameNames('player_walk', {
-                prefix: "Move-",
-                start: 2,
-                end: 3,
+            key: 'knight',
+            frames: this.anims.generateFrameNames('knight', {
+                prefix: "knight-",
+                start: 1,
+                end: 2,
                 suffix: ".png",
                 zeroPad: 1
             }),
-            frameRate: 8,
+            frameRate: 3,
             repeat: -1
         });
 
         this.anims.create({
-            key: 'player_item',
-            frames: this.anims.generateFrameNames('player_item', {
-                prefix: "Item-",
+            key: 'heavyKnight',
+            frames: this.anims.generateFrameNames('heavyKnight', {
+                prefix: "heavyKnight-",
                 start: 1,
-                end: 1,
+                end: 2,
                 suffix: ".png",
                 zeroPad: 1
             }),
-            frameRate: 0,
+            frameRate: 3,
             repeat: -1
         });
 

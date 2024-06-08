@@ -5,65 +5,54 @@ class Adventure extends Phaser.Scene {
 
     init() {
         // variables and settings
-
+        this.playerVelocity = {
+            acceleration: 12*16,
+            maxSpeed: 0,
+            deceleration: -22*16,
+            jumpHeight: -8*16,
+            gravity: 8*16,
+            jumpDuration: 3.6
+        }
+        this.key1 = false;
     }
 
     create() {
         cursors = this.input.keyboard.createCursorKeys();
+        this.spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
+
 //CREATING MAP/TILESETS===================================================================================================================
-        this.map = this.add.tilemap("overworld", 8, 8, 0, 0);
-        this.overworld_tileset = this.map.addTilesetImage("zelda_overworld_tileset", "overworld_tileset");
-        this.forest_tileset = this.map.addTilesetImage("zelda_forest_tileset", "forest_tileset");
-        this.mountain_tileset = this.map.addTilesetImage("zelda_mountain_tileset","mountain_tileset");
-        this.groundLayer = this.map.createLayer("basic-geometry-layer", [this.forest_tileset, this.mountain_tileset, this.overworld_tileset], 0, 0);
+        this.map = this.add.tilemap("Level1");
+        this.backgrounds = this.map.addTilesetImage("Backgrounds", "tilemap_packed_dung");
+        this.platforms = this.map.addTilesetImage("Platforms","rock_packed");
+        this.extras = this.map.addTilesetImage("Extras", "tilemap_packed_plat");
+
+        this.backgroundLayer = this.map.createLayer("Backdrop", [this.backgrounds], 0, 0);
+        this.backgroundLayer.setTint(0x888888) // Apply a gray tint to lower brightness
+        this.groundLayer = this.map.createLayer("TileLayer1", [this.platforms, this.extras], 0, 0);
         this.groundLayer.setCollisionByProperty({//collision with geometry layer
             collides: true
-        }); 
-        my.sprite.player = this.add.container(480, 694); // container for player sprites
+        });
 
-//ITEMS====================================================================================================================================
-        //set up sword
-        my.sprite.sword_up = this.physics.add.sprite(my.sprite.player.x, my.sprite.player.y, "sword_up").setDepth(99);
-        my.sprite.sword_up.setScale(.75);
-        my.sprite.player.add(my.sprite.sword_up);
-        my.sprite.sword_up.visible = false;
-        my.sprite.sword_up.body.enable = false;
-        my.sprite.sword_side = this.physics.add.sprite(my.sprite.player.x, my.sprite.player.y, "sword_side").setDepth(99);
-        my.sprite.sword_side.setScale(.75);
-        my.sprite.player.add(my.sprite.sword_side);
-        my.sprite.sword_side.visible = false;
-        my.sprite.sword_side.body.enable = false;
-
-        //set up wand
-        my.sprite.ice_wand_up = this.physics.add.sprite(my.sprite.player.x, my.sprite.player.y, "ice_wand_up").setDepth(99);
-        my.sprite.player.add(my.sprite.ice_wand_up);
-        my.sprite.ice_wand_up.visible = false;
-        my.sprite.ice_wand_up.body.enable = false;
-        my.sprite.ice_wand_side = this.physics.add.sprite(my.sprite.player.x, my.sprite.player.y, "ice_wand_side").setDepth(99);
-        my.sprite.player.add(my.sprite.ice_wand_side);
-        my.sprite.ice_wand_side.visible = false;
-        my.sprite.ice_wand_side.body.enable = false;
+        this.physics.world.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
 
 //PLAYER SETUP============================================================================================================================
-        my.sprite.link = this.physics.add.sprite(0, 0, "link_green_walk", "LinkMove-4.png").setDepth(100);
-        my.sprite.player.add(my.sprite.link);
+        my.sprite.player = this.physics.add.sprite(112, 760, "knight", "knight-1.png").setDepth(100);
+        my.sprite.player.armor = 'knight';
+        my.sprite.player.grounded = false;
         this.physics.world.enable(my.sprite.player);
-        my.sprite.player.x_coord = 1;
-        my.sprite.player.y_coord = 4;
-        my.playerVal.pos = this.map_coords[my.sprite.player.y_coord][my.sprite.player.x_coord];
-        events.emit('mapCursor');
-        my.sprite.player.body.setCollideWorldBounds(false);//no out of bounds collision
-        my.sprite.player.element = 'green';
-        my.sprite.player.facing = 'up';
+        my.sprite.player.body.setCollideWorldBounds(true);
         this.physics.add.collider(my.sprite.player, this.groundLayer);
+        this.physics.world.gravity.y = 150;
 
-        // Set the size and offset container physics to match link
-        my.sprite.player.body.setSize(my.sprite.link.width, my.sprite.link.height, true);
-        my.sprite.player.body.setOffset(-my.sprite.link.width / 2, -my.sprite.link.height / 2);
+        this.groundLayer.setTileIndexCallback(282, (sprite, tile) => {
+            if(tile && tile.index == 282) {this.scene.restart();}
+        }, this);
 
-        // Adjust position to be on tile
-        my.sprite.player.x = Phaser.Math.Snap.To(my.sprite.player.x, this.tileSize);
-        my.sprite.player.y = Phaser.Math.Snap.To(my.sprite.player.y, this.tileSize);
+//ITEMS====================================================================================================================================
+        my.sprite.key1 = this.add.sprite(14, 238, "plat_tiles", 27);
+        my.sprite.lock1 = this.add.sprite(192, 24, "plat_tiles", 28);
+        my.sprite.closedL = this.add.sprite(208, 24, "dung_tiles", 46);
+        my.sprite.closedR = this.add.sprite(224, 24, "dung_tiles", 47);
 
 //DEUBG====================================================================================================================================
         this.input.keyboard.on('keydown-D', () => {
@@ -74,103 +63,12 @@ class Adventure extends Phaser.Scene {
 //CAMERA===================================================================================================================================
         // adjust camera to full game canvas
         this.mapCamera = this.cameras.main
-        this.mapCamera.setViewport(0, 0, 320, 144);
+        this.mapCamera.setViewport(0, 0, 240, 266);
         this.mapCamera.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
-        this.mapCamera.scrollX = 320
-        this.mapCamera.scrollY = 576
-    }
-
-//SCREEN FUNCTIONS=========================================================================================================================
-
-    screenSetup() {
-        // console.log("in screenSetup!");
-        this.move = false;
-        this.mapCamera.isMoving = true;
-        this.spawn_locations.forEach((spawn) =>{
-            //console.log(spawn.screen, ", ", my.playerVal.pos)
-            if(spawn.screen == my.playerVal.pos) {
-                my.sprite.enemy = this.physics.add.sprite(spawn.x, spawn.y, spawn.type);
-                my.sprite.enemy.map_pos = my.playerVal.pos;
-                this.physics.add.collider(my.sprite.enemy, this.groundLayer);
-                this.enemies.forEach((enemy) =>{
-                    this.physics.add.collider(my.sprite.enemy, enemy);
-                })
-                this.enemies.push(my.sprite.enemy);
-            }
-        })
-    }
-
-    screenStart() {
-        // console.log("in screenStart!");
-        this.actionable_timer = 0;
-        this.move = true;
-        this.mapCamera.isMoving = false;
-        this.relative_gameFrame = 0;
-        
-    }
-
-    checkCameraBounds() {
-        const cam = this.mapCamera;
-        const boundsWidth = 320;
-        const boundsHeight = 144;
-        const playerScreenX = my.sprite.player.x - cam.scrollX;
-        const playerScreenY = my.sprite.player.y - cam.scrollY;
-        const panDuration = 1000
-        // Move camera horizontal 
-        if (playerScreenX > boundsWidth) {
-            my.sprite.player.x_coord++;
-            my.playerVal.pos = this.map_coords[my.sprite.player.y_coord][my.sprite.player.x_coord];
-            events.emit('mapCursor');
-            this.screenSetup();
-            cam.pan(cam.scrollX + boundsWidth + boundsWidth / 2, cam.scrollY + boundsHeight / 2, panDuration);
-            this.time.delayedCall(panDuration + 50, () => this.screenStart())   
-            this.relative_gameFrame = 0;     
-            
-            
-        } else if (playerScreenX < 0) {
-            my.sprite.player.x_coord--;   
-            my.playerVal.pos = this.map_coords[my.sprite.player.y_coord][my.sprite.player.x_coord];
-            events.emit('mapCursor');
-            this.screenSetup();
-            cam.pan(cam.scrollX - boundsWidth + boundsWidth / 2, cam.scrollY + boundsHeight / 2, panDuration);
-            this.time.delayedCall(panDuration + 50, () => this.screenStart())        
-            this.relative_gameFrame = 0;  
-            }
-        // Move camera vertical
-        if (playerScreenY > boundsHeight) {
-            my.sprite.player.y_coord++;   
-            my.playerVal.pos = this.map_coords[my.sprite.player.y_coord][my.sprite.player.x_coord];
-            events.emit('mapCursor');
-            this.screenSetup();
-            cam.pan(cam.scrollX + boundsWidth / 2, cam.scrollY + boundsHeight + boundsHeight / 2, panDuration);
-            this.time.delayedCall(panDuration + 50, () => this.screenStart()) 
-            this.relative_gameFrame = 0;  
-            
-        } else if (playerScreenY < 0) {
-            my.sprite.player.y_coord--;
-            my.playerVal.pos = this.map_coords[my.sprite.player.y_coord][my.sprite.player.x_coord];
-            events.emit('mapCursor');
-            this.screenSetup();
-            cam.pan(cam.scrollX + boundsWidth / 2, cam.scrollY - boundsHeight + boundsHeight / 2, panDuration);
-            this.time.delayedCall(panDuration + 50, () => this.screenStart())  
-            this.relative_gameFrame = 0;     
-            
-        }
-    }
-
+        this.mapCamera.startFollow(my.sprite.player);
+       }
 
 //MISC FUNCTIONS=========================================================================================================================
-
-    // Function to update player hitbox based on animation
-    updatePlayerHitbox(animation) {
-        if (animation === 'side'|| animation === 'down') {
-            my.sprite.link.body.setSize(16, 16)
-            my.sprite.link.body.setOffset(0, 0)
-        } else if (animation === 'up') {
-            my.sprite.link.body.setSize(12, 15)
-            my.sprite.link.body.setOffset(0, 0)
-        }
-    }
     
     //sprite collision
     collides(a, b) {
@@ -179,269 +77,57 @@ class Adventure extends Phaser.Scene {
         return true;
     }
     
-    e_move(enemy) {
-        let rand = Math.random();
-        if(rand < .25) { //move left
-            let targetX = enemy.x - (Math.floor(Math.random() * (6 - 1) + 1) * 8);
-            enemy.targetX = targetX;
-            enemy.facing = 'left';
-            enemy.setVelocity(-this.playerVelocity / 2, 0);
-        }
-        else if(rand >= .25 && rand < .5) {//move up
-            let targetY = enemy.y - (Math.floor(Math.random() * (6 - 1) + 1) * 8);
-            enemy.targetY = targetY;
-            enemy.facing = 'up';
-            enemy.setVelocity(0, -this.playerVelocity / 2);
-        }
-        else if(rand >= .5 && rand < .75) { //move right
-            let targetX = enemy.x + (Math.floor(Math.random() * (6 - 1) + 1) * 8);
-            enemy.targetX = targetX;
-            enemy.facing = 'right';
-            enemy.setVelocity(this.playerVelocity / 2, 0);
-        }
-        else if(rand > .75) {//move down
-            let targetY = enemy.y + (Math.floor(Math.random() * (6 - 1) + 1) * 8);
-            enemy.targetY = targetY;
-            enemy.facing = 'down';
-            enemy.setVelocity(0, this.playerVelocity / 2);
-        }
-    }
-
     update() {
-        if(!this.mapCamera.isMoving)this.checkCameraBounds();
-        //console.log(this.actionable_timer)
+        // correct grounded from constantly moving the player.
+        let tile = this.map.getTileAtWorldXY(my.sprite.player.x, my.sprite.player.y + 16, true, this.mapCamera, this.groundLayer);
+        if(tile && tile.index != -1) {my.sprite.player.grounded = true; this.physics.world.gravity.y = 0;}
+        else if (tile.index == -1) {my.sprite.player.grounded = false; this.physics.world.gravity.y = 150;}
 
-//ENEMY CHECKS==========================================================================================================================
-        if(this.enemies.length != 0) for (let i = this.enemies.length - 1; i >= 0; i--) {
-            let enemy = this.enemies[i];
-            let prob = 1/5;
-            //console.log(enemy.x - enemy.targetX, enemy.y - enemy.targetY)
-            if(Math.random() < prob && !enemy.isMoving) {
-                enemy.isMoving = true;
-                this.e_move(enemy);
-            }
-            else if(enemy.isMoving) {
-
-                //stopping code
-                if((enemy.body.deltaX() == 0 && enemy.body.deltaY() == 0)) enemy.isMoving = false;
-                else {
-                    switch(enemy.facing){
-                        case 'left':
-                            if(enemy.x < enemy.targetX || (enemy.body.velocity.x && enemy.body.velocity.x > -this.playerVelocity / 2)) enemy.isMoving = false;
-                            break
-                        case 'up':
-                            if(enemy.y < enemy.targetY || (enemy.body.velocity.y && enemy.body.velocity.y > -this.playerVelocity / 2)) enemy.isMoving = false;
-                            break
-                        case 'right':
-                            if(enemy.x > enemy.targetX || (enemy.body.velocity.x && enemy.body.velocity.x < this.playerVelocity / 2)) enemy.isMoving = false;
-                            break
-                        case 'down':
-                            if(enemy.y > enemy.targetY|| (enemy.body.velocity.y && enemy.body.velocity.y < this.playerVelocity / 2)) enemy.isMoving = false;
-                            break
-                    }
-                } if(!enemy.isMoving){
-                    enemy.targetX = null;
-                    enemy.targetY = null;
-                    enemy.setVelocity(0, 0);
-                    enemy.anims.stop();
-                }
-            }
-
-            if(this.collides(enemy, my.sprite.player) && this.iframes_counter == 0){
-                let angle = Phaser.Math.Angle.Between(enemy.x, enemy.y, my.sprite.player.x, my.sprite.player.y);
-                my.sprite.player.dir = angle;
-                this.actionable = false;
-                this.actionable_timer = 7;
-                this.iframes_counter = 20;
-                this.move = false;
-            }
-
-            if(enemy.delete == true) this.enemies.splice(i, 1);
-        }
-
+        
 //PLAYER CHECKS=========================================================================================================================
-        //if(my.sprite.player.dir)console.log(this.actionable_timer)
-        if(this.iframes_counter > 0) this.iframes_counter--;
-        if(this.actionable_offset > 0) this.actionable_offset--;
-        if(this.actionable_timer > 0 ) this.actionable_timer--;
-        else { //not actionable yet, but not active
-            if(this.actionable_offset <= 0) this.actionable = true; 
-            let anim = null;
+        let anim = my.sprite.player.armor;
 
-            //item or pickup anim or hitstun ended, so walk anim must be restored
-            if(my.sprite.link.anims.currentAnim && (my.sprite.link.anims.currentAnim.key.includes("item")  || my.sprite.link.anims.currentAnim.key.includes("pickup") || my.sprite.player.dir)){ 
-                my.sprite.player.dir = null;
-                if(!this.mapCamera.isMoving)this.move = true;
-                switch (my.sprite.player.facing) {
-                case 'up':
-                    anim = my.sprite.player.element+'_walk_up';
-                    my.sprite.link.anims.play(anim, true);
-                    my.sprite.link.anims.stop();
-                    this.updatePlayerHitbox("up");
-                    my.sprite.sword_up.visible = false;
-                    my.sprite.ice_wand_up.visible = false;
-                    break;
-                case 'down':
-                    anim = my.sprite.player.element+'_walk_down';
-                    my.sprite.link.anims.play(anim, true);
-                    my.sprite.link.anims.stop();
-                    this.updatePlayerHitbox("down");
-                    my.sprite.sword_up.visible = false;
-                    my.sprite.ice_wand_up.visible = false;
-                    break;
-                case 'right':
-                    anim = my.sprite.player.element+'_walk_side';
-                    my.sprite.link.anims.play(anim, true);
-                    my.sprite.link.anims.stop();
-                    this.updatePlayerHitbox("right");
-                    my.sprite.link.resetFlip();
-                    my.sprite.sword_side.visible = false;
-                    my.sprite.ice_wand_side.visible = false; 
-                    break;
-                case 'left':
-                    anim = my.sprite.player.element+'_walk_side';
-                    my.sprite.link.anims.play(anim, true);
-                    my.sprite.link.anims.stop();
-                    this.updatePlayerHitbox("left");
-                    my.sprite.link.setFlip(true, false);
-                    my.sprite.sword_side.visible = false;
-                    my.sprite.ice_wand_side.visible = false; 
-                    break;
-                    
-
-                }
-            }
-
+        // correct max velocity
+        if(my.sprite.player.velocity > my.playerVal.maxSpeed) {
+            my.sprite.player.setVelocityX(my.playerVal.maxSpeed);
+        }
+        
+        // player movement
+        if(cursors.left.isDown) { //move left pressed
+            my.sprite.player.setAccelerationX(-this.playerVelocity.acceleration);
+            my.sprite.player.anims.play(anim, true);
+            my.sprite.player.setFlip(true, false);
+        } else if(cursors.right.isDown) { //move right pressed
+            my.sprite.player.setAccelerationX(this.playerVelocity.acceleration);
+            my.sprite.player.anims.play(anim, true);
+            my.sprite.player.resetFlip();    
+        } else { // no longer walking, enact decel
+            my.sprite.player.setAccelerationX(0);
+            my.sprite.player.setDragX(18*16);
+        }
+        if (Phaser.Input.Keyboard.JustDown(this.spaceBar) && my.sprite.player.grounded) { //jump pressed
+            my.sprite.player.setVelocityY(this.playerVelocity.jumpHeight);
+            // console.log("v:"+my.sprite.player.body.velocity.x+","+my.sprite.player.body.velocity.y);
         }
 
-        if (this.move && !this.moving && this.actionable) { //moveable
-            if(Phaser.Input.Keyboard.JustDown(this.xKey)) { //sword button pressed
-                this.actionable = false;
-                this.actionable_timer = 8;
-                this.actionable_offset = this.actionable_timer + 4;
-                let anim = null;
-                this.move = false;
-                switch (my.sprite.player.facing) {
-                    case 'up':
-                        anim = my.sprite.player.element+'_item_up';
-                        my.sprite.sword_up.setPosition(1, -12);
-                        my.sprite.sword_up.visible = true;
-                        my.sprite.sword_up.body.enable = true;
-                        my.sprite.sword_up.resetFlip(); 
-                        break;
-                    case 'down':
-                        anim = my.sprite.player.element+'_item_down';
-                        my.sprite.sword_up.setPosition(0, 12);
-                        my.sprite.sword_up.visible = true;
-                        my.sprite.sword_up.body.enable = true;
-                        my.sprite.sword_up.setFlip(false, true);
-                        break;
-                    case 'right':
-                        anim = my.sprite.player.element+'_item_side';
-                        my.sprite.sword_side.setPosition(12, 1);
-                        my.sprite.sword_side.visible = true;
-                        my.sprite.sword_side.body.enable = true;
-                        my.sprite.sword_side.resetFlip(); 
-                        break;
-                    case 'left':
-                        anim = my.sprite.player.element+'_item_side';
-                        my.sprite.sword_side.setPosition(-13, 1);
-                        my.sprite.sword_side.visible = true;
-                        my.sprite.sword_side.body.enable = true;
-                        my.sprite.sword_side.setFlip(true, false);
-                        break;
-                }
-                my.sprite.link.anims.play(anim, true);
-            } else if(Phaser.Input.Keyboard.JustDown(this.zKey)) { //item button pressed
-                my.sprite.player.x = Phaser.Math.Snap.To(my.sprite.player.x, this.tileSize);
-                my.sprite.player.y = Phaser.Math.Snap.To(my.sprite.player.y, this.tileSize);
-                this.actionable = false;
-                this.actionable_timer = 8;
-                this.actionable_offset = this.actionable_timer + 4;
-                let anim = null;
-                this.move = false;
-                switch (my.sprite.player.facing) {
-                    case 'up':
-                        anim = my.sprite.player.element+'_item_up';
-                        my.sprite.ice_wand_up.setPosition(0, -11);
-                        my.sprite.ice_wand_up.visible = true;
-                        my.sprite.ice_wand_up.body.enable = true;
-                        my.sprite.ice_wand_up.resetFlip(); 
-                        break;
-                    case 'down':
-                        anim = my.sprite.player.element+'_item_down';
-                        my.sprite.ice_wand_up.setPosition(0, 11);
-                        my.sprite.ice_wand_up.visible = true;
-                        my.sprite.ice_wand_up.body.enable = true;
-                        my.sprite.ice_wand_up.setFlip(false, true);
-                        break;
-                    case 'right':
-                        anim = my.sprite.player.element+'_item_side';
-                        my.sprite.ice_wand_side.setPosition(12, 1);
-                        my.sprite.ice_wand_side.visible = true;
-                        my.sprite.ice_wand_side.body.enable = true;
-                        my.sprite.ice_wand_side.resetFlip();
-                        break;
-                    case 'left':
-                        anim = my.sprite.player.element+'_item_side';
-                        my.sprite.ice_wand_side.setPosition(-12, 1);
-                        my.sprite.ice_wand_side.visible = true;
-                        my.sprite.ice_wand_side.body.enable = true;
-                        my.sprite.ice_wand_side.setFlip(true, false);
-                        break;
-                }
-                my.sprite.link.anims.play(anim, true);
-            } else if(cursors.left.isDown) { //move left pressed
-                my.sprite.player.body.setVelocity(-this.playerVelocity, 0);
-                let anim = my.sprite.player.element+'_walk_side';
-                my.sprite.link.anims.play(anim, true);
-                this.updatePlayerHitbox("side");
-                my.sprite.player.facing = 'left';
-                my.sprite.link.setFlip(true, false);
-            } else if(cursors.right.isDown) { //move right pressed
-                my.sprite.player.body.setVelocity(this.playerVelocity, 0);
-                let anim = my.sprite.player.element+'_walk_side';
-                my.sprite.link.anims.play(anim, true);
-                this.updatePlayerHitbox("side")
-                my.sprite.player.facing = 'right';
-                my.sprite.link.resetFlip();    
-            } else if(cursors.up.isDown) { //move up pressed
-                my.sprite.player.body.setVelocity(0, -this.playerVelocity);
-                let anim = my.sprite.player.element+'_walk_up';
-                my.sprite.link.anims.play(anim, true);
-                my.sprite.player.facing = 'up';
-                this.updatePlayerHitbox("up")
-            }else if(cursors.down.isDown) { //move down pressed
-                my.sprite.player.body.setVelocity(0, this.playerVelocity);
-                let anim = my.sprite.player.element+'_walk_down';
-                my.sprite.link.anims.play(anim, true);
-                my.sprite.player.facing = 'down';
-                this.updatePlayerHitbox("down")
-            }else { //no movement or button pressed
-                // TODO: set acceleration to 0 and have DRAG take over
-                my.sprite.player.body.setVelocity(0, 0)
-                my.sprite.link.anims.stop();
-                // adjust position to be on tile
-                
-            }
-        } else { //not moveable
-            if(my.sprite.player.dir) {
-                // my.sprite.player.x += 2.5 * Math.cos(my.sprite.player.dir);
-                // my.sprite.player.y += 2.5 * Math.sin(my.sprite.player.dir);
-                let tx = this.playerVelocity * 2 * Math.cos(my.sprite.player.dir);
-                let ty = this.playerVelocity * 2 * Math.sin(my.sprite.player.dir);
-                my.sprite.player.body.setVelocity(tx, ty);
-            }
-            else my.sprite.player.body.setVelocity(0, 0)
-            my.sprite.link.anims.stop();
+        // key progression
+        if (this.collides(my.sprite.player, my.sprite.key1)) {
+            my.sprite.key1.destroy();
+            this.key1 = true;
         }
+        if (this.collides(my.sprite.player, my.sprite.lock1) && this.key1 === true) {
+            my.sprite.lock1.destroy();
+            my.sprite.closedL.destroy();
+            my.sprite.closedR.destroy();
+            my.sprite.openL = this.add.sprite(208, 24, "dung_tiles", 10);
+            my.sprite.openR = this.add.sprite(224, 24, "dung_tiles", 11);
+        }
+        
+        // end of game
+        // if (this.collides(my.sprite.player, my.sprite.openL || my.sprite.openR)) {
 
-        if(my.sprite.player.body.deltaX() == 0 && my.sprite.player.body.deltaY() == 0) {//snap to tile if you have no momentum
-            my.sprite.player.x = Phaser.Math.Snap.To(my.sprite.player.x, this.tileSize);
-            my.sprite.player.y = Phaser.Math.Snap.To(my.sprite.player.y, this.tileSize);
-        }
-//TIMERS=================================================================================================================================
-        this.gameFrame++;
-        this.relative_gameFrame++;
+        // }
     }
 }
+//TIMERS=================================================================================================================================
+        // this.gameFrame++; 6
